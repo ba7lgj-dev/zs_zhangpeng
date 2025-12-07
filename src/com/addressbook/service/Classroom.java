@@ -11,16 +11,22 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class Classroom implements StudentOperations {
-    private final String className;
-    private final String headTeacher;
-    private final String major;
+    private final String classId;
+    private String className;
+    private String headTeacher;
+    private String major;
     private final List<Student> students;
 
-    public Classroom(String className, String headTeacher, String major, List<Student> students) {
+    public Classroom(String classId, String className, String headTeacher, String major, List<Student> students) {
+        this.classId = classId;
         this.className = className;
         this.headTeacher = headTeacher;
         this.major = major;
         this.students = new ArrayList<>(students);
+    }
+
+    public String getClassId() {
+        return classId;
     }
 
     public String getClassName() {
@@ -33,6 +39,18 @@ public class Classroom implements StudentOperations {
 
     public String getMajor() {
         return major;
+    }
+
+    public void updateInfo(String newClassName, String newHeadTeacher, String newMajor) {
+        if (newClassName != null && !newClassName.isBlank()) {
+            this.className = newClassName;
+        }
+        if (newHeadTeacher != null && !newHeadTeacher.isBlank()) {
+            this.headTeacher = newHeadTeacher;
+        }
+        if (newMajor != null && !newMajor.isBlank()) {
+            this.major = newMajor;
+        }
     }
 
     public int getStudentCount() {
@@ -86,6 +104,11 @@ public class Classroom implements StudentOperations {
         applySortStrategy(new StudentNameSortStrategy());
     }
 
+    public void replaceStudents(List<Student> newStudents) {
+        students.clear();
+        students.addAll(newStudents);
+    }
+
     private void applySortStrategy(SortStrategy strategy) {
         strategy.sort(students);
     }
@@ -97,6 +120,6 @@ public class Classroom implements StudentOperations {
 
     @Override
     public String toString() {
-        return String.format("班级: %s | 班主任: %s | 专业: %s | 学生人数: %d", className, headTeacher, major, students.size());
+        return String.format("班级编号: %s | 班级: %s | 班主任: %s | 专业: %s | 学生人数: %d", classId, className, headTeacher, major, students.size());
     }
 }

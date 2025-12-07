@@ -11,7 +11,7 @@ public final class DataInitializer {
 
     public static List<Classroom> initializeClasses() {
         Classroom software2301 = new Classroom(
-                "软件2301", "刘伟", "软件工程",
+                "202301", "软件2301", "刘伟", "软件工程",
                 Arrays.asList(
                         new Student("230101", "王子浩", "13812345670", "wangzh@univ.edu", "523456789", "南苑3-201", "男", 20),
                         new Student("230102", "陈可盈", "13987654321", "chenky@univ.edu", "623456789", "南苑3-202", "女", 19),
@@ -22,7 +22,7 @@ public final class DataInitializer {
         );
 
         Classroom software2302 = new Classroom(
-                "软件2302", "张敏", "软件工程",
+                "202302", "软件2302", "张敏", "软件工程",
                 Arrays.asList(
                         new Student("230201", "李浩然", "18812349876", "lihr@univ.edu", "512345678", "北苑5-101", "男", 20),
                         new Student("230202", "周思源", "18722334455", "zhousy@univ.edu", "612345678", "北苑5-102", "男", 21),
