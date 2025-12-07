@@ -2,18 +2,23 @@ package com.addressbook.app;
 
 import com.addressbook.data.DataStore;
 import com.addressbook.entity.Student;
+import com.addressbook.service.BasicGlobalSearchService;
 import com.addressbook.service.ClassManager;
 import com.addressbook.service.Classroom;
+import com.addressbook.service.GlobalSearchResult;
+import com.addressbook.service.GlobalSearchService;
 import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
 
 public class StudentConsoleApp {
     private final ClassManager classManager;
+    private final GlobalSearchService searchService;
     private final Scanner scanner = new Scanner(System.in);
 
     public StudentConsoleApp(ClassManager classManager) {
         this.classManager = classManager;
+        this.searchService = new BasicGlobalSearchService(classManager);
     }
 
     public static void main(String[] args) {
@@ -35,7 +40,10 @@ public class StudentConsoleApp {
                 case 6 -> deleteStudent();
                 case 7 -> updateStudent();
                 case 8 -> searchStudent();
-                case 9 -> exit = true;
+                case 9 -> addClass();
+                case 10 -> updateClassInfo();
+                case 11 -> globalSearch();
+                case 12 -> exit = true;
                 default -> System.out.println("无效选项，请重新输入。");
             }
         }
@@ -52,7 +60,10 @@ public class StudentConsoleApp {
         System.out.println("6. 删除学生");
         System.out.println("7. 修改学生");
         System.out.println("8. 搜索学生");
-        System.out.println("9. 退出系统");
+        System.out.println("9. 新增班级");
+        System.out.println("10. 修改班级信息");
+        System.out.println("11. 全局搜索");
+        System.out.println("12. 退出系统");
     }
 
     private void viewAllClasses() {
@@ -60,9 +71,12 @@ public class StudentConsoleApp {
     }
 
     private Classroom selectClassroom() {
-        System.out.print("请输入班级名称：");
+        System.out.print("请输入班级编号或名称：");
         String className = scanner.nextLine();
-        Classroom classroom = classManager.getClassByName(className);
+        Classroom classroom = classManager.getClassById(className);
+        if (classroom == null) {
+            classroom = classManager.getClassByName(className);
+        }
         if (classroom == null) {
             System.out.println("未找到该班级，请确认输入。");
         }
@@ -115,8 +129,11 @@ public class StudentConsoleApp {
         int age = readInt("输入年龄：");
 
         Student student = new Student(id, name, phone, email, qq, dorm, gender, age);
-        classroom.addStudent(student);
-        System.out.println("学生添加成功！");
+        if (classManager.addStudentToClass(classroom.getClassId(), student)) {
+            System.out.println("学生添加成功！");
+        } else {
+            System.out.println("添加学生失败。");
+        }
     }
 
     private void deleteStudent() {
@@ -126,7 +143,7 @@ public class StudentConsoleApp {
         }
         System.out.print("输入要删除的学号：");
         String id = scanner.nextLine();
-        boolean removed = classroom.deleteStudent(id);
+        boolean removed = classManager.deleteStudentFromClass(classroom.getClassId(), id);
         if (removed) {
             System.out.println("删除成功！");
         } else {
@@ -192,8 +209,11 @@ public class StudentConsoleApp {
         }
 
         Student updated = new Student(existing.getId(), name, phone, email, qq, dorm, gender, age);
-        classroom.updateStudent(id, updated);
-        System.out.println("修改完成！");
+        if (classManager.updateStudentInClass(classroom.getClassId(), id, updated)) {
+            System.out.println("修改完成！");
+        } else {
+            System.out.println("修改失败，未找到学生。");
+        }
     }
 
     private void searchStudent() {
@@ -214,6 +234,54 @@ public class StudentConsoleApp {
         } else {
             System.out.println("无效选项。");
         }
+    }
+
+    private void addClass() {
+        System.out.print("输入班级编号：");
+        String classId = scanner.nextLine();
+        System.out.print("输入班级名称：");
+        String className = scanner.nextLine();
+        System.out.print("输入专业：");
+        String major = scanner.nextLine();
+        System.out.print("输入班主任：");
+        String headTeacher = scanner.nextLine();
+
+        Classroom classroom = new Classroom(classId, className, headTeacher, major, List.of());
+        if (classManager.addClass(classroom)) {
+            System.out.println("班级新增成功！");
+        } else {
+            System.out.println("新增班级失败。");
+        }
+    }
+
+    private void updateClassInfo() {
+        Classroom classroom = selectClassroom();
+        if (classroom == null) {
+            return;
+        }
+        System.out.print("输入新班级名称(回车跳过)：");
+        String name = scanner.nextLine();
+        System.out.print("输入新班主任(回车跳过)：");
+        String headTeacher = scanner.nextLine();
+        System.out.print("输入新专业(回车跳过)：");
+        String major = scanner.nextLine();
+        if (classManager.updateClass(classroom.getClassId(), name, headTeacher, major)) {
+            System.out.println("班级信息更新完成！");
+        } else {
+            System.out.println("更新失败。");
+        }
+    }
+
+    private void globalSearch() {
+        System.out.print("输入搜索关键字：");
+        String keyword = scanner.nextLine();
+        GlobalSearchResult result = searchService.search(keyword);
+        if (result.isEmpty()) {
+            System.out.printf("未找到任何与关键字“%s”相关的信息。%n", keyword);
+            return;
+        }
+        result.getClassMatches().forEach(match -> System.out.println(match.getDescription()));
+        result.getStudentMatches().forEach(match -> System.out.println(match.getDescription()));
     }
 
     private int readInt(String tip) {
